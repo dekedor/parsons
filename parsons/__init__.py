@@ -41,6 +41,16 @@ if not os.environ.get('PARSONS_SKIP_IMPORT_ALL'):
     from parsons.newmode.newmode import Newmode
     from parsons.databases.mysql.mysql import MySQL
     from parsons.rockthevote.rtv import RockTheVote
+    from parsons.mailchimp.mailchimp import Mailchimp
+    from parsons.zoom.zoom import Zoom
+    from parsons.action_network.action_network import ActionNetwork
+    from parsons.pdi.pdi import PDI
+    from parsons.azure.azure_blob_storage import AzureBlobStorage
+    from parsons.github.github import GitHub
+    from parsons.bloomerang.bloomerang import Bloomerang
+    from parsons.box.box import Box
+    from parsons.sisense.sisense import Sisense
+    from parsons.surveygizmo.surveygizmo import SurveyGizmo
 
     __all__ = [
         'VAN',
@@ -76,6 +86,16 @@ if not os.environ.get('PARSONS_SKIP_IMPORT_ALL'):
         'Newmode',
         'MySQL',
         'RockTheVote',
+        'Mailchimp',
+        'Zoom',
+        'ActionNetwork',
+        'PDI',
+        'AzureBlobStorage',
+        'GitHub',
+        'Bloomerang',
+        'Box',
+        'Sisense',
+        'SurveyGizmo'
     ]
 
 # Define the default logging config for Parsons and its submodules. For now the

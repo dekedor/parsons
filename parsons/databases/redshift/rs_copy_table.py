@@ -24,7 +24,7 @@ class RedshiftCopyTable(object):
                        dateformat='auto', timeformat='auto', emptyasnull=True,
                        blanksasnull=True, nullas=None, acceptinvchars=True, truncatecolumns=False,
                        specifycols=None, aws_access_key_id=None, aws_secret_access_key=None,
-                       compression=None):
+                       compression=None, bucket_region=None):
 
         # Source / Destination
         source = f's3://{bucket}/{key}'
@@ -40,6 +40,9 @@ class RedshiftCopyTable(object):
         # Other options
         if manifest:
             sql += "manifest \n"
+        if bucket_region:
+            sql += f"region '{bucket_region}'\n"
+            logger.info('Copying data from S3 bucket %s in region %s', bucket, bucket_region)
         sql += f"maxerror {max_errors} \n"
         if statupdate:
             sql += "statupdate on\n"
@@ -114,6 +117,10 @@ class RedshiftCopyTable(object):
             raise KeyError(("Missing S3_TEMP_BUCKET, needed for transferring data to Redshift. "
                             "Must be specified as env vars or kwargs"
                             ))
+
+        # Coalesce S3 Key arguments
+        aws_access_key_id = aws_access_key_id or self.aws_access_key_id
+        aws_secret_access_key = aws_secret_access_key or self.aws_secret_access_key
 
         self.s3 = S3(aws_access_key_id=aws_access_key_id,
                      aws_secret_access_key=aws_secret_access_key)

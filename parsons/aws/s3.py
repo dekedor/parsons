@@ -115,7 +115,7 @@ class S3(object):
         """
 
         keys_dict = dict()
-        logger.info(f'Fetching keys in {bucket} bucket')
+        logger.debug(f'Fetching keys in {bucket} bucket')
 
         continuation_token = None
 
@@ -158,7 +158,7 @@ class S3(object):
             else:
                 break
 
-        logger.info(f'Retrieved {len(keys_dict)} keys')
+        logger.debug(f'Retrieved {len(keys_dict)} keys')
         return keys_dict
 
     def key_exists(self, bucket, key):
@@ -178,10 +178,10 @@ class S3(object):
         key_count = len(self.list_keys(bucket, prefix=key))
 
         if key_count > 0:
-            logger.info(f'Found {key} in {bucket}.')
+            logger.debug(f'Found {key} in {bucket}.')
             return True
         else:
-            logger.info(f'Did not find {key} in {bucket}.')
+            logger.debug(f'Did not find {key} in {bucket}.')
             return False
 
     def create_bucket(self, bucket):
@@ -303,7 +303,9 @@ class S3(object):
                         destination_key=None, suffix=None, regex=None,
                         date_modified_before=None, date_modified_after=None,
                         public_read=False, remove_original=False, **kwargs):
-        """Transfer files between s3 buckets
+        """
+        Transfer files between s3 buckets
+
         `Args:`
             origin_bucket: str
                 The origin bucket
@@ -327,12 +329,13 @@ class S3(object):
             remove_original: bool
                 If the original keys should be removed after transfer
             kwargs:
-                Additional arguments for the S3 API call. See `AWS download_file documentation
+                Additional arguments for the S3 API call. See `AWS download_file docs
                 <https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.copy>`_
                 for more info.
         `Returns:`
             ``None``
         """
+
         # If prefix, get all files for the prefix
         if origin_key.endswith('/'):
             resp = self.list_keys(

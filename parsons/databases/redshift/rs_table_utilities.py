@@ -49,10 +49,10 @@ class RedshiftTableUtilities(object):
 
         # If in either, return boolean
         if result >= 1:
-            logger.info(f'{table_name[0]}.{table_name[1]} exists.')
+            logger.debug(f'{table_name[0]}.{table_name[1]} exists.')
             return True
         else:
-            logger.info(f'{table_name[0]}.{table_name[1]} does NOT exist.')
+            logger.debug(f'{table_name[0]}.{table_name[1]} does NOT exist.')
             return False
 
     def get_row_count(self, table_name):
@@ -170,7 +170,7 @@ class RedshiftTableUtilities(object):
 
         else:
             if exists and if_exists == 'drop':
-                logger.info(f"Table {table_name} exist, will drop...")
+                logger.debug(f"Table {table_name} exist, will drop...")
                 drop_sql = f"drop table {table_name};\n"
                 self.query_with_connection(drop_sql, connection, commit=False)
 
@@ -346,7 +346,7 @@ class RedshiftTableUtilities(object):
         """
         Gets the column names (and some other column info) for a table.
 
-        If you just need the column names, you can treat the return value like a list, eg:
+        If you just need the column names, run ``get_columns_list()`` as it is faster.
 
         .. code-block:: python
 
@@ -361,8 +361,17 @@ class RedshiftTableUtilities(object):
         `Returns:`
             A dict mapping column name to a dict with extra info. The keys of the dict are ordered
             just like the columns in the table. The extra info is a dict with format
-            ``{'data_type': str, 'max_length': int or None, 'max_precision': int or None,
-               'max_scale': int or None, 'is_nullable': bool}``
+
+            .. code-block:: python
+
+                {
+                'data_type': str,
+                'max_length': int or None,
+                'max_precision': int or None,
+                'max_scale': int or None,
+                'is_nullable': bool
+                }
+
         """
 
         query = f"""
@@ -389,6 +398,23 @@ class RedshiftTableUtilities(object):
             }
             for row in self.query(query)
         }
+
+    def get_columns_list(self, schema, table_name):
+        """
+        Gets the just the column names for a table.
+
+        `Args:`
+            schema: str
+                The schema name
+            table_name: str
+                The table name
+        `Returns:`
+            A list of column names.
+        """
+
+        first_row = self.query(f"select * from {schema}.{table_name} limit 1")
+
+        return first_row.columns
 
     def get_views(self, schema=None, view=None):
         """

@@ -1,6 +1,7 @@
 import json
 import logging
 import requests
+import time
 
 from parsons.etl.table import Table
 from parsons.utilities import check_env
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ActionKit(object):
     """
-    Instatiate the ActionKit class
+    Instantiate the ActionKit class
 
     `Args:`
         domain: str
@@ -20,7 +21,7 @@ class ActionKit(object):
             The authorized ActionKit username. Not required if ``ACTION_KIT_USERNAME`` env
             variable set.
         password: str
-            The authorized ActionKit user password. Not required if ``ACTION_KIT_USERNAME``
+            The authorized ActionKit user password. Not required if ``ACTION_KIT_PASSWORD``
             env variable set.
     """
 
@@ -50,11 +51,10 @@ class ActionKit(object):
             return url + f'{entity_id}/'
         return url
 
-    def _base_get(self, endpoint, entity_id=None, exception_message=None):
+    def _base_get(self, endpoint, entity_id=None, exception_message=None, params=None):
         # Make a general get request to ActionKit
 
-        resp = self.conn.get(self._base_endpoint(endpoint, entity_id))
-
+        resp = self.conn.get(self._base_endpoint(endpoint, entity_id), params=params)
         if exception_message and resp.status_code == 404:
             raise Exception(self.parse_error(resp, exception_message))
 
@@ -127,8 +127,10 @@ class ActionKit(object):
         `Args:`
             email: str
                 Email for the user
-            user_dict: dict
-                Optional; Additional user fields
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns:`
             User json object
         """
@@ -143,14 +145,34 @@ class ActionKit(object):
         `Args:`
             user_id: int
                 The user id of the person to update
-            user_dict: dict
-                A dictionary of fields to update for the user.
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns:`
             ``None``
         """
 
         resp = self.conn.patch(self._base_endpoint('user', user_id), data=json.dumps(kwargs))
         logger.info(f'{resp.status_code}: {user_id}')
+
+    def update_event(self, event_id, **kwargs):
+        """
+        Update an event.
+
+        `Args:`
+            event_id: int
+                The event id of the event to update
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
+        `Returns:`
+            ``None``
+        """
+
+        resp = self.conn.patch(self._base_endpoint('event', event_id), data=json.dumps(kwargs))
+        logger.info(f'{resp.status_code}: {event_id}')
 
     def delete_user(self, user_id):
         """
@@ -199,6 +221,10 @@ class ActionKit(object):
         `Args:`
             name: str
                 The name of the campaign to create
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns`:
             API location of new resource
         """
@@ -243,6 +269,10 @@ class ActionKit(object):
                 The name of the page to create
             title: str
                 The title of the page to create
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns`:
             API location of new resource
         """
@@ -289,6 +319,10 @@ class ActionKit(object):
                 The page to associate the form with
             thank_you_text: str
                 Free form thank you text
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns:`
             API location of new resource
         """
@@ -336,6 +370,10 @@ class ActionKit(object):
                 The name of the page to create
             title: str
                 The title of the page to create
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns`:
             API location of new resource
         """
@@ -382,6 +420,10 @@ class ActionKit(object):
                 The page to associate the form with
             thank_you_text: str
                 Free form thank you text
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns:`
             API location of new resource
         """
@@ -391,6 +433,27 @@ class ActionKit(object):
                                page=f'/rest/v1/page/{page_id}/',
                                thank_you_text=thank_you_text,
                                **kwargs)
+
+    def update_event_signup(self, event_signup_id, **kwargs):
+        """
+        Update an event signup.
+
+        `Args:`
+            event_signup_id: int
+                The id of the event signup to update
+            event_signup_dict: dict
+                A dictionary of fields to update for the event signup.
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
+        `Returns:`
+            ``None``
+        """
+
+        resp = self.conn.patch(self._base_endpoint('eventsignup', event_signup_id),
+                               data=json.dumps(kwargs))
+        logger.info(f'{resp.status_code}: {event_signup_id}')
 
     def get_page_followup(self, page_followup_id):
         """
@@ -427,6 +490,10 @@ class ActionKit(object):
                 The signup page to associate the followup page with
             url: str
                 URL of the folloup page
+            **kwargs:
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns`:
             API location of new resource
         """
@@ -449,8 +516,9 @@ class ActionKit(object):
             ak_id:
                 The action kit id of the record.
             **kwargs:
-                Optional arguments and fields that can sent. A full list can be found
-                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/manual/api/rest/actionprocessing.html>`_.
+                Optional arguments and fields to pass to the client. A full list can be found
+                in the `ActionKit API Documentation <https://roboticdogs.actionkit.com/docs/\
+                manual/api/rest/actionprocessing.html>`_.
         `Returns`:
             dict
                 The response json
@@ -471,8 +539,7 @@ class ActionKit(object):
         """
         Bulk upload a csv file of new users or user updates.
         If you are uploading a table object, use bulk_upload_table instead.
-        See `ActionKit User Upload Documentation
-             <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html>`
+        See `ActionKit User Upload Documentation <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html>`_
         Be careful that blank values in columns will overwrite existing data.
 
         If you get a 500 error, try sending a much smaller file (say, one row),
@@ -488,7 +555,7 @@ class ActionKit(object):
             autocreate_user_fields: bool
               When True columns starting with "user_" will be uploaded as user fields.
               See the `autocreate_user_fields documentation
-              <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html#create-a-multipart-post-request>`
+              <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html#create-a-multipart-post-request>`_.
             user_fields_only: bool
               When uploading only an email/user_id column and user_ user fields,
               ActionKit has a fast processing path.
@@ -498,31 +565,37 @@ class ActionKit(object):
                 success: whether upload was successful
                 progress_url: an API URL to get progress on upload processing
                 res: requests http response object
-        """
+        """ # noqa: E501,E261
 
         # self.conn defaults to JSON, but this has to be form/multi-part....
         upload_client = self._conn({'accepts': 'application/json'})
         if isinstance(csv_file, str):
             csv_file = open(csv_file, 'rb')
 
-        res = upload_client.post(
-            self._base_endpoint('upload'),
-            files={'upload': csv_file},
-            data={'page': import_page,
-                  'autocreate_user_fields': int(autocreate_user_fields),
-                  'user_fields_only': int(user_fields_only)})
-        rv = {'res': res,
-              'success': res.status_code == 201,
-              'progress_url': res.headers.get('Location')}
-        return rv
+        url = self._base_endpoint('upload')
+        files = {'upload': csv_file}
+        data = {
+            'page': import_page,
+            'autocreate_user_fields': int(autocreate_user_fields),
+            'user_fields_only': int(user_fields_only),
+        }
+        with upload_client.post(url, files=files, data=data) as res:
+            progress_url = res.headers.get('Location')
+            rv = {
+                'res': res,
+                'success': res.status_code == 201,
+                'id': progress_url.split('/')[-2] if progress_url else None,
+                'progress_url': progress_url
+            }
+            return rv
 
     def bulk_upload_table(self, table, import_page, autocreate_user_fields=0,
-                          no_overwrite_on_empty=False):
+                          no_overwrite_on_empty=False, set_only_columns=None):
         """
         Bulk upload a table of new users or user updates.
-        See `ActionKit User Upload Documentation
-             <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html>`
+        See `ActionKit User Upload Documentation <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html>`_
         Be careful that blank values in columns will overwrite existing data.
+
         Tables with only an identifying column (user_id/email) and user_ user fields
         will be fast-processed -- this is useful for setting/updating user fields.
 
@@ -538,8 +611,8 @@ class ActionKit(object):
                 A user_id or email column is required.
             autocreate_user_fields: bool
                 When True columns starting with "user_" will be uploaded as user fields.
-                See the `autocreate_user_fields documentation
-                  <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html#create-a-multipart-post-request>`
+                `ActionKit <https://actionkit.com/>`_.
+                See the autocreate_user_fields `documentation <https://roboticdogs.actionkit.com/docs/manual/api/rest/uploads.html#create-a-multipart-post-request>`_.
             no_overwrite_on_empty: bool
                 When uploading user data, ActionKit will, by default, take a blank value
                 and overwrite existing data for that user.
@@ -547,16 +620,19 @@ class ActionKit(object):
                 Setting this to True will divide up the table into multiple upload
                 batches, changing the columns uploaded based on permutations of
                 empty columns.
+            set_only_columns: list
+                This is similar to no_overwrite_on_empty but restricts to a specific set of columns
+                which, if blank, should not be overwritten.
         `Returns`:
             dict
                 success: bool -- whether upload was successful (individual rows may not have been)
                 results: [dict] -- This is a list of the full results.
                          progress_url and res for any results
-        """
+        """ # noqa: E501,E261
+
         import_page = check_env.check('ACTION_KIT_IMPORTPAGE', import_page)
-        upload_tables = [table]
-        if no_overwrite_on_empty:
-            upload_tables = self._split_tables_no_empties(table)
+        upload_tables = self._split_tables_no_empties(
+            table, no_overwrite_on_empty, set_only_columns)
         results = []
         for tbl in upload_tables:
             user_fields_only = int(not any([
@@ -571,10 +647,15 @@ class ActionKit(object):
             'results': results
         }
 
-    def _split_tables_no_empties(self, table):
+    def _split_tables_no_empties(self, table, no_overwrite_on_empty, set_only_columns):
         table_groups = {}
+        # uploading combo of user_id and email column should be mutually exclusive
+        blank_columns_test = table.columns
+        if not no_overwrite_on_empty:
+            blank_columns_test = (set(['user_id', 'email'] + (set_only_columns or []))
+                                  .intersection(table.columns))
         for row in table:
-            blanks = tuple(k for k in table.columns
+            blanks = tuple(k for k in blank_columns_test
                            if row.get(k) in (None, ''))
             grp = table_groups.setdefault(blanks, [])
             grp.append(row)
@@ -583,5 +664,43 @@ class ActionKit(object):
             subset_table = Table(subset)
             if blanks:
                 subset_table.table = subset_table.table.cutout(*blanks)
+            logger.debug(f'Column Upload Blanks: {blanks}')
+            logger.debug(f'Column Upload Columns: {subset_table.columns}')
+            if not set(['user_id', 'email']).intersection(subset_table.columns):
+                logger.warning(
+                    f'Upload will fail without user_id or email. '
+                    f'Rows: {subset_table.num_rows}, Columns: {subset_table.columns}'
+                )
             results.append(subset_table)
         return results
+
+    def collect_upload_errors(self, result_array):
+        """
+        Collect any upload errors as a list of objects from bulk_upload_table 'results' key value.
+        This waits for uploads to complete, so it may take some time if you uploaded a large file.
+        `Args:`
+            result_array: list
+                After receiving a dict back from bulk_upload_table you may want to see if there
+                were any errors in the uploads.  If you call collect_upload_errors(result_array)
+                it will iterate across each of the uploads fetching the final result of e.g.
+                /rest/v1/uploaderror?upload=123
+        `Returns`:
+            [dict]
+                message: str -- error message
+                upload: str -- upload progress API path e.g. "/rest/v1/upload/123456/"
+                id: int -- upload error record id (different than upload id)
+        """
+        errors = []
+        for res in result_array:
+            upload_id = res.get('id')
+            if upload_id:
+                while True:
+                    upload = self._base_get(endpoint='upload', entity_id=upload_id)
+                    if not upload or upload.get('status') != 'new':
+                        break
+                    else:
+                        time.sleep(1)
+                error_data = self._base_get(endpoint='uploaderror', params={'upload': upload_id})
+                logger.debug(f'error collect result: {error_data}')
+                errors.extend(error_data.get('objects') or [])
+        return errors
